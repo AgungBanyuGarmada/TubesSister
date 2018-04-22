@@ -3,8 +3,8 @@ import string
 import os
 import hashlib
 import time
-import multiprocessing
-
+import threading
+import queue
 
 class Cracker(object):
     ALPHA_LOWER = (string.ascii_lowercase,)
@@ -56,6 +56,7 @@ class Cracker(object):
         :param maxlength: Maximum length the search space should be capped at
         :return:
         """
+
         return (
             ''.join(candidate) for candidate in
             itertools.chain.from_iterable(
@@ -179,13 +180,13 @@ if __name__ == "__main__":
     print("{}Cracking...{}".format(os.linesep, os.linesep))#, flush=True)
 
     processes = []
-    work_queue = multiprocessing.Queue()
-    done_queue = multiprocessing.Queue()
+    work_queue = queue.Queue()
+    done_queue = queue.Queue()
     cracker = Cracker(hash_type.lower(), user_hash.lower())
 
     start_time = time.time()
 
-    p = multiprocessing.Process(target=Cracker.work,
+    p = threading.Thread(target=Cracker.work,
                                 args=(work_queue, done_queue, ''.join(selected_charset), password_length))
     processes.append(p)
     work_queue.put(cracker)
@@ -193,7 +194,7 @@ if __name__ == "__main__":
 
     if len(selected_charset) > 1:
         for i in range(len(selected_charset)):
-            p = multiprocessing.Process(target=Cracker.work,
+            p = threading.Thread(target=Cracker.work,
                                         args=(work_queue, done_queue, selected_charset[i], password_length))
             processes.append(p)
             work_queue.put(cracker)
