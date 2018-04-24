@@ -47,7 +47,7 @@ class Cracker(object):
         return hashlib.new(self.__hash_type, data.encode("utf-8")).hexdigest()
 
     @staticmethod
-    def __search_space(charset, maxlength):
+    def __search_space(charset, maxlength, minLength):
         """
         Generates the search space for us to attack using a generator
         We could never pregenerate this as it would take too much time and require godly amounts of memory
@@ -61,7 +61,7 @@ class Cracker(object):
             ''.join(candidate) for candidate in
             itertools.chain.from_iterable(
                 itertools.product(charset, repeat=i) for i in
-                range(1, maxlength + 1)
+                range(minLength, maxlength + 1)
             )
         )
 
@@ -73,7 +73,7 @@ class Cracker(object):
         :param maxlength: Maximum length of the character set to attack
         :return:
         """
-        for attempt in self.__search_space(charset, maxlength):
+        for attempt in self.__search_space(charset, maxlength, 1):
             if not q.empty():
                 return
 
@@ -192,13 +192,13 @@ if __name__ == "__main__":
     work_queue.put(cracker)
     p.start()
 
-    if len(selected_charset) > 1:
-        for i in range(len(selected_charset)):
-            p = threading.Thread(target=Cracker.work,
-                                        args=(work_queue, done_queue, selected_charset[i], password_length))
-            processes.append(p)
-            work_queue.put(cracker)
-            p.start()
+    # if len(selected_charset) > 1:
+    #     for i in range(len(selected_charset)):
+    #         p = threading.Thread(target=Cracker.work,
+    #                                     args=(work_queue, done_queue, selected_charset[i], password_length))
+    #         processes.append(p)
+    #         work_queue.put(cracker)
+    #         p.start()
 
     failures = 0
     while True:
